@@ -1,0 +1,93 @@
+{
+  "note": "Retrieval eval question set. Each answerable entry has an expected_doc and an expected_substring: a hit is at least one top-k chunk from the right doc containing that substring (case-insensitive). Substring instead of chunk index so the ground truth survives chunk-size changes between V1 and V2.",
+  "schema": {
+    "id": "stable short id",
+    "difficulty": "easy | hard | unanswerable",
+    "question": "the text sent to /query or /api/ask",
+    "expected_doc": "filename in the corpus, or null for unanswerable",
+    "expected_substring": "substring that must appear in a retrieved chunk, or null for unanswerable",
+    "notes": "freeform, why this question is in the set"
+  },
+  "questions": [
+    {
+      "id": "q01",
+      "difficulty": "easy",
+      "question": "What is the \"lost in the middle\" effect?",
+      "expected_doc": "c6-rag.txt",
+      "expected_substring": "lost in the middle",
+      "notes": "Named effect, mentioned verbatim in C6. If this misses the retrieval is broken."
+    },
+    {
+      "id": "q02",
+      "difficulty": "easy",
+      "question": "What chunk size and overlap does the norag-rag lab use?",
+      "expected_doc": "c6-rag.txt",
+      "expected_substring": "800",
+      "notes": "C6 page 27. The number is distinctive."
+    },
+    {
+      "id": "q03",
+      "difficulty": "easy",
+      "question": "Which local embedding model does the norag-rag lab use?",
+      "expected_doc": "c6-rag.txt",
+      "expected_substring": "MiniLM",
+      "notes": "all-MiniLM-L6-v2 is called out on pages 37-38."
+    },
+    {
+      "id": "q04",
+      "difficulty": "easy",
+      "question": "What are the two phases of a RAG pipeline?",
+      "expected_doc": "c6-rag.txt",
+      "expected_substring": "indexing",
+      "notes": "Indexing and answering, C6 page 21."
+    },
+    {
+      "id": "q05",
+      "difficulty": "easy",
+      "question": "What is a Decision Model (DM) in this course?",
+      "expected_doc": "c5-llm-api-part3-decisions.txt",
+      "expected_substring": "Decision",
+      "notes": "Tests retrieval against a shorter doc."
+    },
+    {
+      "id": "q06",
+      "difficulty": "hard",
+      "question": "Why can't an LLM's internal hidden states be used as a search index?",
+      "expected_doc": "c6-rag.txt",
+      "expected_substring": "hidden",
+      "notes": "Multi-hop. The answer spans the three-vector-spaces table and the embedding model paragraph."
+    },
+    {
+      "id": "q07",
+      "difficulty": "hard",
+      "question": "How do I get back into my account?",
+      "expected_doc": "c6-rag.txt",
+      "expected_substring": "credential",
+      "notes": "Vocabulary mismatch: the docs say 'credential recovery' not 'get back into my account'. This is the point of the question."
+    },
+    {
+      "id": "q08",
+      "difficulty": "hard",
+      "question": "What does a cosine similarity of 1 mean?",
+      "expected_doc": "c6-rag.txt",
+      "expected_substring": "direction",
+      "notes": "Short slide. Retrieval might surface the longer dot-product paragraph instead."
+    },
+    {
+      "id": "q09",
+      "difficulty": "unanswerable",
+      "question": "What is a north-star metric?",
+      "expected_doc": null,
+      "expected_substring": null,
+      "notes": "Not in the corpus. Model must set no_answer=true."
+    },
+    {
+      "id": "q10",
+      "difficulty": "unanswerable",
+      "question": "How do I deploy this app to AWS Lambda?",
+      "expected_doc": null,
+      "expected_substring": null,
+      "notes": "Deployment advice is not in the course notes."
+    }
+  ]
+}

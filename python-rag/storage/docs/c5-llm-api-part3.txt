@@ -1,0 +1,35 @@
+[page 1]
+Clarifications
+News Break -> Decision Models are In!
+RAG - Part I
+LLM API Integration - Part III
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 2]
+Homework Assignments
+The first one was a mishap
+From now on, I will use Team's Assignment feature in addition to posting to the group channel
+Continuous Assessment:
+Class Participation (Interaction/engagement)
+Timely Submissions (Homework deadlines)
+Quality & Rigor (Follow-up on instructions)
+Attendance & Punctuality (Absences and delays)
+Above 30 minutes late => Absent: Students who are more than 30 minutes late will be marked
+as Absent
+Final Project Assessment:
+During your presentation, you may have questions about the etnire course, including the Triage
+App.
+Assignment for next week
+finish and submit the full Triage App, which includes:
+Chat, Triage V2
+First Assignment Specs to be found on Teams - Post "C4 - Homework"
+Decision Model Integration Assignment (Specs in the Decision Decisions presentation)
+Submit by Saturday 24th 1:00 pm. Submission by email: 
+LLM API Integration - Part III
+denis.amselem@epita.fr
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 3]
+LLM API Integration - Part III
+C5 - Session 2 - LLM API Integration - Part III - Extra - Decisions Decisions
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026

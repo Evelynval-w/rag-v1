@@ -1,0 +1,441 @@
+[page 1]
+"THE BIGGEST BARRIER TO INTEGRATING AI INTO EXISTING
+WORKFLOWS IS INSUFFICIENT WORKER SKILLS"
+AI in Production - Landscape and Engineering Realities
+Deloitte, State of AI In The Enterprise 2026
+The bottleneck isn't the AI model anymore. It's the people who
+know how to integrate AI in an application and make it actually
+work reliably — and almost nobody does yet.
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 2]
+Academic roots: Master's in Computer Science (DEA), Grenoble University.
+The Silicon Valley journey (25 years):
+The graphics revolution: Stanford Research Institute, 3dfx (later NVIDIA) — hardware,
+3D, VR, networking.
+The mobile & social wave: Motorola, Loopt, HP — location-based services, mobile, web
+front end and back end.
+Big data: 23andMe, BlueFox, Equancy — data analytics, visualization, data science.
+My current challenges:
+Keeping up with AI developments
+Helping others make the most of AI
+My current favorite sayings:
+Zero Friction Is Oblivion
+Curiosity killed the cat....
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 3]
+"Being too curious or nosy can lead to trouble or danger..."
+Really?... By the way, do you know the full saying?
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 4]
+Curiosity can be risky, but also rewarding.
+Let me tell you a story.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 5]
+Please take 5 minutes to fill out a background survey. It helps me get a sense of who you are
+and your experience with AI and software engineering.
+There are no right or wrong answers, and nothing is graded. Just be honest.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 6]
+Generative AI is reshaping the software industry, but demo-worthy is not production-
+worthy.
+AI is quickly becoming a default feature expectation in software products.
+As a software engineer, you will increasingly be asked to integrate AI into a product the
+same way you would integrate a database or a payment provider — and to do it reliably and
+eﬀiciently.
+AI integration engineering skills — not merely prompting know-how — are what will set you
+apart.
+Market trends: 
+AI in Production - Landscape and Engineering Realities
+C1 - Session 1 - Part I - Intro - Why this course - AI Adoption vs Transformation -
+2026
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 7]
+It helps to be clear about the scope from the start.
+This is not a course on how LLMs work internally.
+This is not a course on training or fine-tuning models. That is a diﬀerent discipline, with
+very specific use cases. What you will learn here is how to use models: responsibly, reliably,
+and with production-grade rigour. (The next slide makes the distinction concrete.)
+This is not a course on agentic coding with tools like Claude Code, Codex, Cursor,
+OpenCode or Antigravity. You will very likely use them during the course, so we will review a
+few recommendations and expectations for developing with AI, but they are not the subject.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 8]
+MAKING THE POINT: AI ENGINEERING IS NOT ML TRAINING
+Both disciplines overlap, but the engineering questions they ask are diﬀerent:
+Machine learning engineering AI systems engineering
+Train / fine-tune models Consume models
+Curate training data Curate runtime context
+Optimize model architecture Integrate the model into an application
+Training metrics Product / system evaluation
+GPU infrastructure API / inference infrastructure
+Model quality End-to-end system quality
+The model is biased or inaccurate at the
+weights level
+The integration is fragile: bad prompts, no fallback, no
+monitoring, cost blowouts
+This course is primarily about the right-hand column.
+Put diﬀerently: We are not learning how to build GPT. We are learning how to responsibly put
+GPT-like capabilities into software.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 9]
+Level: Bachelor in Computer Science — 3rd year — S5
+Format: a 6-session, 24-hour course
+24 h face-to-face (lectures, labs, capstone presentations)
+about 20 h of autonomous project work at home
+Across the sessions you will add one AI feature to a web application, end to end:
+1. Session 1 — Landscape & engineering realities (today)
+2. Session 2 — LLM API integration & prompt engineering
+3. Session 3 — Retrieval-Augmented Generation (RAG)
+4. Session 4 — Observability, evaluation, cost control
+5. Session 5 — Responsible AI: governance & safety
+6. Session 6 — Capstone project demos and presentations
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 10]
+Evaluation: the capstone project, built progressively across the course
+Reaching out:
+Email:  (preferred)
+Teams: you may also send me a direct message, but I may not be able to reply
+immediately
+Questions?
+AI in Production - Landscape and Engineering Realities
+denis.amselem@epita.fr
+Let's get started!
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 11]
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 12]
+1. Session 1 — Landscape & engineering realities (today)
+2. Session 2 — LLM API integration & prompt engineering
+3. Session 3 — Retrieval-Augmented Generation (RAG)
+4. Session 4 — Observability, evaluation, cost control
+5. Session 5 — Responsible AI: governance & safety
+6. Session 6 — Capstone project demos and presentations
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 13]
+Block Duration
+Welcome, roadmap, objectives 5 min
+Part I — Landscape: the building blocks 15 min
+Part II — Why AI systems are diﬀerent 20 min
+Part III — From model to system 10 min
+Parts IV–V — Testing & versioning 10 min
+☕  Break 10 min
+Case study setup — Support Triage 5 min
+Workshop — architecture, incidents, trade-oﬀs 60 min
+Debrief, exit check, wrap-up 10 min
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 14]
+By the end of this session, you should be able to:
+place LLMs, embeddings, vector databases, tools and agents in a software architecture
+explain why AI features have diﬀerent engineering failure modes from conventional
+software
+identify sources of latency, cost, non-determinism, hallucination and operational failure
+distinguish model capability from system reliability
+reason about what should be validated, monitored, evaluated and governed
+inspect an AI architecture and identify production risks before writing code
+No coding today.
+Our focus: thinking as engineers planning to integrate production-grade AI features into a
+system.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 15]
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 16]
+The word can mean several diﬀerent things:
+the industry landscape — which companies, how much funding, how fast adoption is
+moving
+the product landscape — which vendors and tools are ahead this quarter
+the career landscape — which skills the job market rewards right now
+the architectural landscape — what pieces exist, what each one is for, and how they
+combine into a system
+Today means the last one: the architectural landscape.
+We already touched on adoption and career leverage, and they are not forgotten — they are
+just not today's focus.
+The industry and product landscapes are worth close attention, but they shift monthly,
+sometimes weekly.
+The architectural landscape is comparatively stable: the products will keep changing, but the
+roles they play — generation, representation, retrieval, orchestration — will not.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 17]
+Four kinds of components tend to show up again and again in AI systems:
+1. LLM API: 
+generates text
+2. Embedding 
+model: turns text 
+into vectors
+3. Vector database: 
+finds similar vectors
+4. Agent 
+framework: 
+orchestrates the 
+others
+They are layers you compose, not competitors.
+We will look closely at the first three, which you will combine to build an application based on
+RAG — Retrieval-Augmented Generation.
+You will explore what RAG is and how to implement it during Session 3. It will be the core of
+the project you keep improving through Sessions 4 and 5. Agents are mentioned today, but
+not built.
+AI in Production - Landscape and Engineering Realities
+RAG is a widely adopted architectural pattern for combining
+external knowledge with an LLM.
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 18]
+An LLM API lets your code talk to a pretrained model, hosted remotely (or locally), over HTTP.
+You send a prompt, and often a conversation history.
+You get generated text back — usually streamed token by token.
+Some things worth knowing right away:
+Examples: Anthropic's Claude, OpenAI's GPT models, Google's Gemini, and open-weight
+models served through aggregators such as OpenRouter, Hugging Face or OpenCode
+Usage is typically priced per token, for input and output, usually at diﬀerent rates — do you
+know why?
+The API is stateless by default: it does not remember previous calls, so you resend the
+context every time
+What you will actually touch in Session 2:
+authentication (API keys, environment variables — never in client code!)
+request structure: system prompt, message history, parameters (temperature, max tokens)
+streaming vs. blocking responses
+rate limits and provider error codes
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 19]
+Why are output tokens usually more expensive?
+Each output token requires a full forward pass of the model, generated one after the other,
+while the input tokens can be processed in parallel.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 20]
+An LLM's knowledge comes entirely from training: a large, fixed snapshot of text, frozen at a
+knowledge cutoﬀ. Once training ends, the weights don't change.
+That leaves two permanent gaps:
+Recency Gap — this morning's inventory, this week's incident, a policy that changed last
+month
+Access Gap — your company's internal documents, a specific user's account or history,
+records that were never public
+Most real AI features — as opposed to a general chatbot demo — live squarely inside one of
+these gaps: "summarize this user's tickets", "answer from our internal policy", "check today's
+stock level".
+This isn't a bug to patch. It is a permanent property of any trained model.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 21]
+WHAT ABOUT WEB SEARCH TOOL FOR LLMS?
+This helps mitigate the first gap yet comes with its own challenges and issues (lag, quality,
+context, cost etc..)
+It does address the Access gap: working with private enterprise data (potentially very large
+data sets)
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 22]
+"WHY NOT JUST RETRAIN THE MODEL ON OUR DATA?"
+Fair question.
+Fine-tuning is one real path, but:
+it is expensive and slow — data curation, training runs, GPU cost (that is the ML-engineering
+column from earlier, not the one this course lives in)
+it has to be redone whenever the data changes
+it is opaque — harder to inspect why the model produced a given answer
+The alternative this course focuses on: leave the weights untouched and supply the missing
+information fresh, at request time, in the context window.
+But your data is almost always far bigger than any context window, and stuﬀing all of it into
+every request runs straight into the cost and latency problems we discuss in Part II. So the real
+engineering question becomes:
+AI in Production - Landscape and Engineering Realities
+Out of everything we know, which slice is relevant to this request
+— and how does it get into the context?
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 23]
+An embedding model converts a piece of text into a fixed-length vector of numbers, so that
+semantically similar text produces nearby vectors.
+"The cat sat on the mat" and "A feline rested on the rug" land close together, even with zero
+shared words
+an unrelated sentence lands far away
+used for search, clustering, recommendation and — central to this course — retrieval for
+RAG
+distinct from LLMs: an embedding model doesn't generate text, it only represents it
+AI in Production - Landscape and Engineering Realities
+Checkpoint: Do you know what Embeddings are?
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 24]
+A piece of text (or an image, audio, etc.) converted into a vector — a fixed-length list of
+numbers — such that:
+semantically similar content produces nearby vectors
+Concretely: "cat" → [0.12, -0.04, 0.91, ..., 0.33]
+An embedding is a coordinate, not an answer. It means nothing on its own; what matters is
+how it compares with another embedding. In practice that comparison is usually cosine
+similarity: the angle between two vectors, not the raw distance between them.
+The cat sat on the 
+mat vector A
+A feline rested on 
+the rug
+vector B
+points almost the 
+same way as A
+Invoice #4711 is 
+overdue
+vector C
+points somewhere 
+very different
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 25]
+A token is the unit a model actually reads and writes — closer to a word-piece than a word.
+"unbelievable" might become un + believ + able; common short words are
+usually a single token.
+Every model has a fixed vocabulary: the complete list of tokens it knows, each with its own ID.
+That list is big.
+Model / tokenizer Vocabulary size
+BERT ~30,000
+GPT-2 ~50,000
+GPT-3.5 / GPT-4 ( cl100k_base) ~100,000
+Llama 3 ~128,000
+Qwen 2/3 ~150,000
+GPT-4o ( o200k_base) ~200,000
+Gemma ~256,000
+(Anthropic hasn't published Claude's exact vocabulary size, but it is in the same broad range:
+tens of thousands to low hundreds of thousands.)
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 26]
+The naive way to turn a token into a vector is one-hot encoding: a vector as long as the entire
+vocabulary, all zeros except a single 1.
+It is sparse, huge and — critically — says nothing about meaning: "cat" and "kitten" are
+exactly as far apart as "cat" and "refrigerator".
+An embedding replaces that with a small, dense vector that does encode meaning:
+Embedding model Typical dimension
+Lightweight / cost-optimized models 256–512
+BERT-base, many open models 768
+OpenAI text-embedding-3-small 1,536
+OpenAI text-embedding-3-large 3,072
+That is an embedding space one or two orders of magnitude smaller than the vocabulary —
+roughly 30× to 100× fewer dimensions.
+The point: take a huge, meaning-blind list of IDs and squeeze it into a much smaller space
+where distance finally means something.
+AI in Production - Landscape and Engineering Realities
+vocabulary size = 100,000
+token "cat" = [0, 0, ..., 1, ..., 0, 0]     ← 100,000 numbers, one of
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 27]
+So far we have talked about embedding a token. But we also need to "embed" whole
+sentences, paragraphs and documents.
+How do we get from one token embedding to a variable length text?
+Text Tokens
+Embedding model
+one contextual 
+vector per token
+Pooling
+combine token 
+vectors
+ONE vector
+for the whole text
+The embedding model first produces a vector per token, and each one already takes the
+surrounding words into account (so "bank" in river bank and bank account diﬀer).
+A pooling step (for example averaging, or using a special summary token) collapses them
+into one fixed-length vector for the whole text.
+These embedding models are trained so that texts with similar meaning end up with similar
+vectors.
+Whatever the length of the text, you get the same number of dimensions back — which is
+what makes comparing and searching them possible.
+AI in Production - Landscape and Engineering Realities
+Embedding Model != LLM Model
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 28]
+A vector database is optimized to store embeddings and answer the question "what is most
+similar to this vector?" at scale, instead of exact-match queries.
+Examples: ChromaDB, Pinecone (managed), Weaviate (managed or self-hosted), pgvector
+(an extension that adds vector search to plain PostgreSQL)
+Under the hood: approximate nearest-neighbour (ANN) search, which trades a little
+accuracy for large speed gains
+In AI Systems, their role is to help Retrieve the most similar chunks of text that will be
+relevant to the current prompt.
+AI in Production - Landscape and Engineering Realities
+Embeddings and vector databases are explored in detail in Session
+3.
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 29]
+Embeddings: Mathematical formats of unstructured data (text, images, audio) created by AI
+models.
+Similarity Search: Finding data points close to a query vector using distance metrics like
+cosine similarity.
+Approximate Nearest Neighbor (ANN): Fast algorithms used to sift through millions of
+vectors quickly. [ , ]
+AI in Production - Landscape and Engineering Realities
+1 2
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 30]
+Before we define it: would you be able to say what an agentic system is, and what it is not?
+Take a minute to think about it, then compare with the next slide.
+AI in Production - Landscape and Engineering Realities
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 31]
+A useful engineering definition:
+needs a tool result done
+User request
+LLM: decide the 
+next step
+Tool / API call Final answer
+An agent is not just "a smarter prompt". The loop — decide, act, observe, decide again — is
+what makes it diﬀerent, and it is also where new failure modes come from.
+AI in Production - Landscape and Engineering Realities
+An agentic system repeatedly uses a model to decide what action
+to take, often calling tools, observing the results, and continuing
+until a stopping condition is reached.
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026
+
+[page 32]
+Agent frameworks are libraries that orchestrate multiple LLM calls, tool use and state into a
+workflow, instead of a single prompt → single response.
+Examples: LangChain, LlamaIndex, CrewAI, Google ADK (Agent Development Kit)
+Typical pattern: the LLM decides which tool to call (search the web, query a database, run
+code), observes the result, and decides the next step — which may involve more LLM calls
+Powerful, but it adds failure surface: more calls, more places for cost and latency to spiral,
+more places for the chain to go wrong.
+Worth asking yourself: "What new failure modes appear once the model can take actions?":
+wrong tool, repeated loops, unintended side eﬀects, permissions, costs, tool failure, prompt
+injection through tool results.
+AI in Production - Landscape and Engineering Realities
+This course does not build a multi-step agent — it is out of scope for
+20 hours. But you need to recognize the pattern when you see it,
+because it is where a lot of production AI horror stories come from:
+runaway loops, runaway costs. The cost and latency monitoring of
+Session 4 applies doubly to agents.
+AI Systems Integration And Operations - BCS S5 - Denis Amselem - EPITA - 2026

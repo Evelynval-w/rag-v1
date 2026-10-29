@@ -1,0 +1,329 @@
+[page 1]
+LLM API Integration - Part III - Xtra - Decisions Decisions
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 2]
+While this session 2 was being finalized, something new showed up.
+Decision models: a new kind of model, and a new kind of API to call it.
+Disclaimer: Things move fast - the api, examples, numbers etc... presented here could become quickly obsolete.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+Anyone?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 3]
+Date
+(2026)
+What happened
+15 Sept TypeSafe AI launches Jev: a model that does not write text, it decides. Its API: POST /v1/systemone
+22 Sept TypeSafe pauses new signups: demand is too high
+29 Sept OpenAI announces a Decisions API at DevDay, in limited preview. Liquid AI announces d1
+1 Oct Cloudflare releases Clef and Clef-flash (open weights). AWS open-sources Strands Decider. Perplexity launches a
+Decisions API
+6 Oct OpenAI opens POST /v1/decisions to all developers, in public beta
+10 Oct vLLM Semantic Router deprecates Decision 1.0, a family that had appeared only one or two weeks earlier
+17 Oct vLLM Semantic Router releases Decision 3.0: six models, from 0.6B to 27B, multimodal (text, images, video)
+Jev's public product came 14 days before OpenAI's announcement. That shows the order of launches. It does not show
+who copied whom, or who invented the category.
+And all of this is already old news by AI industry's standards.
+The industry moves fast.
+The engineer's question is not "is this exciting?" but:
+LLM API Integration - Part III - Xtra - Decisions Decisions
+Is it relevant to what I am building?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 4]
+"decision model" is the generic term.
+TypeSafe, who introduced the category with their decision model named Jev, calls them "System One" models (after
+Kahneman's fast, intuitive "System 1" thinking).
+Daniel Kahneman, a Nobel Prize-winning psychologist, modeled "System 1" as the brain's fast, involuntary, and intuitive
+shortcut engine.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 5]
+A decision model takes a state and typed questions about it. It answers each question with a probability, not a
+sentence.
+state: the thing to judge: a text, a web page, an agent trace
+questions: what must be decided, each with a fixed answer format
+Three types of questions:
+Type Question Answer
+choice pick one option among a closed set the chosen option, plus a probability per option
+noul a yes/no question a probability between 0 and 1
+score rate on an ordered scale a score, plus a probability per level
+LLM API Integration - Part III - Xtra - Decisions Decisions
+Key idea: a decision model cannot answer outside the options you gave it, and it tells
+you how sure it is.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 6]
+Decision models are not:
+the next version of LLMs
+a replacement for LLMs
+able to write, summarize, explain, plan or reason in several steps
+Think of a decision model as an intelligent switch statement: you give it a situation and the options, it picks one,
+with a probability.
+It is one more tool in the toolbox. Everything you learned in Parts I and II about LLMs remains true. The question is
+whether one specific part of your feature is better served by a diﬀerent tool.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+Language models write. Decision models choose.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 7]
+An LLM writes token by token: one pass through the whole network for every token it produces. A decision model reads
+the input once, and scores the allowed answers:
+Most are built on top of an existing model, with the text-generation part replaced by a scoring part:
+Model Maker Built on Size
+Clef / Clef-flash Cloudflare Qwen3.8 / Qwen3.5, frozen, plus small trained adapters and a scoring head 27B / 9B
+Strands Decider AWS a small LLM plus a scoring head of about 1 million parameters 1.9B
+Laya open source an encoder model (ModernBERT), not an LLM 421M
+Decisions API OpenAI "a version of" GPT-6 Luna not disclosed
+Jev TypeSafe not disclosed not disclosed
+Not necessarily small. Clef is a 27-billion-parameter model.
+Training goes beyond "get the right answer": it rewards calibrated probabilities. When the model says 0.9, it should be
+right about 9 times out of 10.
+Key Idea: Read once, answer many questions in one pass.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+LLM:             
+input ─► [read] ─► token ─► token ─► token ─► ... ─► text   (one pass per token)
+Decision model:  
+input + questions ─► [read once] ─► [scoring head: every option, in //] ─► probabilities
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 8]
+Not because they are smaller. Because of how they work:
+1. No generation loop. An LLM producing a 150-token JSON runs 150 sequential steps. A decision model runs one.
+2. No output tokens. Providers typically bill the input only: the answer is a few numbers.
+3. Questions are answered in parallel. Adding a question barely changes the response time.
+4. Always the right shape. No code fence, no missing key, no invented value, no retry for invalid output: the problems of
+Part I sections 5 and 6 do not exist.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+The speed and price figures you may read are early, and often vendor-reported.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 9]
+Decision models are reached the same way as hosted LLMs: HTTPS, a JSON body, usually an API key. What changes is
+the endpoint, the payload and the answer.
+Chat / text LLM Decision model
+Endpoint e.g. /v1/chat/completions, /v1/responses e.g. /v1/decisions, /v1/systemone
+Input messages (prompt text) state + typed questions
+Output free-form text structured decisions and probabilities
+Goal produce useful prose produce a decision in a defined format
+LLM API Integration - Part III - Xtra - Decisions Decisions
+The chat SDK may not apply to a decision endpoint. Read the provider's
+documentation before you write any code.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 10]
+A request is an HTTP POST with a JSON body. Here is one, for our film:
+The response mirrors the request: one typed answer per question, with its probabilities, and a usage block. Notice:
+the answer is a json object.
+criteria is the decision guidance, as data: the options, and what each one means.
+The state is untrusted text: whoever writes it can try to steer the answer. Our code validates what comes back. It
+does not trust it.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+POST https://<provider>/<decision_endpoint> ← often /v1/systemone, but can be /decisions
+                                                    (see next slide)
+Authorization: Bearer <API_KEY>
+Content-Type: application/json
+{
+  "model": "<decision-model>",
+  "state": "Two siblings open a bakery in a small village. On opening night, the secret 
+  "questions": {
+    "genre": {
+      "type": "choice",
+      "instructions": "Which genre fits this film best?",
+      "criteria": {
+        "comedy": "light, funny, mostly happy",
+        "drama": "emotional, realistic, character-driven",
+        "thriller": "suspense, mystery, tension"
+      }
+    },
+    "for_children": {
+      "type": "noul",
+      "instructions": "Is this film suitable for children under 10?"
+    }
+  }
+}
+{
+  "genre": { "choice": "thriller", "probabilities": { "thriller": 0.71, "drama": 0.22, "
+  "for_children": { "noul": 0.14 },
+  "usage": { "input_tokens": 92 }
+}
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 11]
+Similar to the OpenAI api vs other providers own APIs.
+/v1/decisions VERSUS /v1/systemone
+/v1/decisions /v1/systemone
+Introduced by OpenAI TypeSafe AI (Jev, System One models)
+Method POST POST
+Model GPT-6 Luna (only model at launch) Jev, and the System One family
+Status (Oct 2026) public beta since 6 Oct early access since 15 Sep
+LLM API Integration - Part III - Xtra - Decisions Decisions
+What is at stake is market mindshare.
+Same capability, diﬀerent contracts. These two paths can expose the same decision-
+model capability through diﬀerent API contracts. They are not necessarily two
+diﬀerent kinds of model, or two diﬀerent inference methods.
+Even the path changes between providers of the same model. Check the request and
+response schema before you write code.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 12]
+As of October 2026. Subject to errors and changes.
+Provider Model Endpoint Access (Oct 2026)
+OpenAI Decisions API (GPT-6 Luna) POST /v1/decisions public beta, from 6 Oct
+TypeSafe AI Jev (System One) POST /v1/systemone early access, from 15 Sep
+OpenRouter Jev ( typesafe/jev-1.13) /api/alpha/decisions and
+/api/v1/systemone
+input tokens charged
+vLLM Semantic
+Router
+Decision 3.0 ( vllm-sr/d3, d3-
+flash, d3-mini, d3-nano, d3-
+lite, d3-edge)
+POST /v1/systemone API key from decision.vllm-
+sr.ai; Decision 1.0
+deprecated 10 Oct
+Cloudflare Clef, Clef-flash (Workers AI) not confirmed open weights, Apache 2.0,
+from 1 Oct
+Perplexity pplx-decider-v1-27b not confirmed (docs linked) Decisions API, open
+weights, from 1 Oct
+AWS Strands Decider not applicable (open model) open source, from 1 Oct
+Liquid AI d1 not confirmed ( liquid/d1 via
+Vercel AI Gateway)
+hosted API only, from 29
+Sep
+Anthropic none found none found discussion
+Expect LLM providers, gateways and frameworks to support both chat and decision endpoints.
+Hugging Face is where you discover models and companies, and read their model cards. Some companies publish
+free access there too. A hosted API such as decision.vllm-sr.ai is where you call a model, with a key. The two can oﬀer
+the same family under diﬀerent names.
+LLM API Integration - Part III - Xtra - Decisions DecisionsVersions, in a week. Decision 1.0 appeared one or two weeks ago and was deprecated
+on 10 October. Decision 3.0 has been current since 17 October. Its API needs a key, and
+its models are named vllm-sr/d3-*.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 13]
+We found no announced decision endpoint from Anthropic as of this writing.
+Which providers do you expect to oﬀer one, and which will stay chat-first?
+If a provider adds one, what would you want to see in its API before you adopt it?
+LLM API Integration - Part III - Xtra - Decisions Decisions
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 14]
+Ask four questions about a piece of your feature:
+Good fits: categories and filters, spam and yes/no gates, diﬀiculty levels, guard checks before an LLM call.
+Poor fits: writing, summarising, explaining, open-ended reasoning, labels that change every week, huge label sets, and
+safety-critical labels with no human in the loop.
+Where this goes next:
+Session 3 (RAG): more text to judge, and more untrusted text. Is this passage relevant to the question?
+Session 4: we measure. Accuracy and calibration against a labelled set, cost and latency per request.
+Session 5: guards. A decision model is a natural cheap check for "is this input trying to manipulate us?"
+LLM API Integration - Part III - Xtra - Decisions Decisions
+1. Is the answer one of a closed set of options I know in advance?       →  yes: candida
+2. Is the volume high, or the latency important?                          →  yes: worth 
+3. Do I want to *act* on a probability (threshold, human review)?         →  yes: good f
+4. Does anything need to be written or explained?                         →  yes: that p
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 15]
+The category is weeks old. What the early independent tests say:
+Confidence is not always honest. One test on a 77-case banking set: 87% average confidence, 75% actual accuracy.
+Another tester got an 80% confidence on a fair die roll.
+Agreement is not correctness. One study found a decision model agreed with a frontier LLM 6 to 8 points more often
+than it matched the ground-truth labels.
+Many labels hurt. Accuracy drops on large label sets. Our label sets are small: that is in our favour.
+Typed output constrains the shape, not the judgment. A clean answer with a high confidence can still be wrong,
+especially between two close options ( breakfast or snack?).
+Vendor numbers are vendor numbers.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 16]
+Decision model LLM
+Median latency (short texts) about 0.2 s about 1 to 2 s
+Cost per 1,000 requests about $0.025 about 2.88 depending on the model
+Price (hosted, input tokens) about 0.24 per million much higher, plus output tokens
+Early and small: one benchmark on 60 support tickets (OpenRouter), plus provider price lists. Vendors claim far more
+("100× cheaper, 200× faster"). Those are vendor figures, not independent benchmarks.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+0.09to
+0.04to
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 17]
+LLM API Integration - Part III - Xtra - Decisions Decisions
+How is this relevant to our Support Ticket Triage App?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 18]
+LLM API Integration - Part III - Xtra - Decisions Decisions
+How is this relevant to our Support Ticket Triage App?
+1.  What can it do, what can it not do?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 19]
+LLM API Integration - Part III - Xtra - Decisions Decisions
+How is this relevant to our Support Ticket Triage App?
+1.  What can it do, what can it not do?
+2.  How could it be used?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 20]
+LLM API Integration - Part III - Xtra - Decisions Decisions
+How is this relevant to our Support Ticket Triage App?
+1.  What can it do, what can it not do?
+2.  How could it be used?
+3.  (LLM or DM) vs (DM + LLM)
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 21]
+LLM API Integration - Part III - Xtra - Decisions Decisions
+How is this relevant to our Support Ticket Triage App?
+1.  What can it do, what can it not do?
+2.  How could it be used?
+3.  (LLM or DM) vs (DM + LLM)
+4.  Evaluate - What to measure?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 22]
+1. Identify a free (limited usage to be expected) Decision Model available available from a hosted service. List the
+diﬀerent options you have found and justify the one you have selected. If you can not find one, reach out to me early.
+2. Integrate at least one DM in the Triage App.
+1. You can choose how exactly to use it but the user needs to be able to select the strategy (llm/dm/dm+lm?) from
+the front-end.
+2. The smoke test runner must be able to run also when a DM is involved.
+3. Logging and the /admin page tracks which model was used.
+3. Decision Model research, Integration strategy choice, Results and Analysis reported in 'LLM-DM-report.md'.
+4. Submit your full Triage App by Saturday 24th 1pm. Submit by email: 
+Reminder - The full Triage App:
+chat with memory using conversation history
+triage v1, triage v2
+the features posted on Teams: C4 - Homework message in Teams
+DM Assignment
+LLM API Integration - Part III - Xtra - Decisions Decisions
+denis.amselem@epita.fr
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 23]
+F1: Structured triage flow with JSON schema and Zod validation
+The triage request and the triage response each follow a JSON schema.
+Payloads are validated with Zod against that schema before they are forwarded to the user.
+Invalid requests show a clear error on the front end instead of failing silently. F2: Token usage display
+Each triage result on the front end shows the token usage of its LLM call (input, output and total tokens). F3: Smoke
+test runner
+The smoke test is started from the front end.
+The user chooses the dataset (the labelled 100-ticket set or the 500-ticket set) and how many tickets to sample at
+random from it.
+Results are displayed on the front end.
+For the labelled 100 set, each ticket shows the category and priority predicted by the LLM next to the category and
+priority from the labelled set.
+For the labelled 100 set, a summary at the end shows how many predictions are mismatched, for category and for
+priority. F4: Smoke test logging and admin page
+Each smoke test run is logged with its accuracy, outcome counts, latency, cost and the name of the LLM model used.
+An /admin page lists every logged run with these values. F5 (optional): Model switching and comparison
+The front end has a menu to switch the LLM model. This requires access to more than one model.
+The user can re-run the smoke test with another model, and the /admin page shows the two runs side by side for
+comparison.
+LLM API Integration - Part III - Xtra - Decisions Decisions
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026

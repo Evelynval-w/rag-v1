@@ -1,0 +1,9 @@
+web/node_modules/
+web/.next/
+web/next-env.d.ts
+.env*
+!**/.env.example
+python-rag/.venv/
+python-rag/__pycache__/
+python-rag/storage/chroma_db/
+.DS_Store

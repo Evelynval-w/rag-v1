@@ -1,0 +1,851 @@
+[page 1]
+Last week:
+Needle in the stack
+Why models need grounding
+The RAG pipeline,
+Chunks
+Today:
+Triage App: quick debriefing.
+RAG: Continue - Start point: Chunking (Search for "Course 5 - Oct 19th ended here.")
+Lab: norag_rag project walkthrough + experiments
+Introducing the RAG Project - V1
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 2]
+REMINDER: DUE DATE IS SATURDAY 24TH - 1 PM
+OBSERVATIONS (LIMITED SAMPLES)
+Obvious use of AI coding tools. As expected.
+Using the presentation pdf to feed the AI: expect mis-interpretations.
+DM -> Diﬀusion!
+Traces everywhere. AI is chatty. You will miss things.
+'Ooops:'
+Paradox: The more explicit the course material, the easier it is for your AI to build it all.
+Therefore: I leave some features open - to your interpretation. For example: what is an interesting analysis for this
+project? How to make the smoke tests results exploitable?
+AI can build big and fast.
+You are still expected to own your project and stay in control and understand what is going on. Not merely at the
+surface level.
+Be able to identify what is going on, the options that were available, the rationale for the choices made, the
+trade-oﬀs, the gaps, the next improvements
+Building something that works is no longer a good proxy for your evaluating your engineering skills.
+AI gives you the power to explore quick: Add your personal 'touch'. Add or adapt a new feature that demonstrates
+you understand the key concepts or were curious about a subject.
+RAG - Retrieval Augmented Generation - Part II
+## Step 0: Housekeeping (5 min)
+ **First action after approval:** copy this plan into the repo as `HOMEWORK_PLAN.md` at 
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 3]
+CLEF: DECISION MODEL
+CLAIRIC: EXTRACTION MODEL
+Form their blog:
+An extraction model can return:
+Extracted values: Text copied from the input, such as a name, an order ID or a description. Each one comes back as a
+span with its character oﬀsets and a confidence score.
+Including, computed values: Numbers, dates, times, datetimes, durations and lists, read from the input or worked out
+from it. They follow the rules of their type (for example, two decimals for cents) and come with a confidence score.
+Estimated values: Values the input doesn't state but gives evidence for. Each one comes back as a distribution inside
+the bounds you declare, on the grid you specify, with a median and an 80% interval.
+Forecasted values: Future values of a series, one estimate per step ahead, each with its own 80% interval.
+RAG - Retrieval Augmented Generation - Part II
+https://blog.cloudflare.com/clairic-extraction-model/
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 4]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 5]
+Dimension Clairic (Cloudflare) TimesFM 3.0 (Google Research)
+Primary purpose General-purpose extraction, estimation, and basic
+forecasting
+Specialized time-series forecasting
+Input Unstructured text, tables, images Numerical time series and supported covariates
+Temporal patterns General-purpose; limited forecasting capabilities Learned temporal patterns through pretraining
+Multivariate
+forecasting
+Not its core strength Supported
+Output Typed values, confidence, prediction intervals Forecasts and quantiles
+Best fit Heterogeneous business data, quick estimates Metrics, demand, traﬀic, sensor readings
+Deployment Hosted preview on Cloudflare Workers AI Open model implementation and Google Cloud
+integration
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 6]
+Session 1: Done. An AI model is a component. The engineering problem is the system around it.
+Session 2: Done. We integrated an LLM API into a server route: structured output, validation, errors, cost. We explored
+Decision Models.
+Session 3 (today): Retrieval-Augmented Generation - Part II
+By the end of Session 3 you will have a RAG application that will be extended in Sessions 4 and 5.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 7]
+By the end of this lecture you can:
+explain why a model with a very large context window still misses facts
+describe the RAG pipeline in two phases: indexing and answering
+explain what an embedding is and how similarity is computed
+distinguish the latent space inside an LLM from the embedding space your application manages
+explain what chunking does and why it matters
+explain what a vector database stores and what it does at query time
+describe a naive RAG implementation and predict where it will fail
+RAG - Retrieval Augmented Generation - Part II
+Which of these do you already know? Which one do you expect to be hardest?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 8]
+Time Block Type
+0:00 Needle-in-the-haystack demo Demo + discussion
+0:20 Why LLMs need grounding Lecture
+0:30 The RAG pipeline and chunking Lecture
+0:40 Vector databases Lecture
+0:45 Embeddings, in depth Lecture + live computation
+1:00 Three vector spaces, retrieval, grounded generation Lecture
+1:15 Naive RAG: code walkthrough and predictions Demo + discussion
+1:35 Where naive RAG breaks, basic RAG project specification Lecture
+1:55 Wrap-up and questions Discussion
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 9]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 10]
+1. Clone the template (Use This Template): 
+2. Do not try to run the code yet.
+3. First, we run some online experiments with docs/CrimeAndPunishment-shorter.txt.
+4. Open CrimeAndPunishment-shorter.txt. It is an extract from Crime and Punishment (Dostoevsky, 1866). A
+new paragraph about a fictional character, Denis Amselemovitch, has been inserted somewhere in the text.
+RAG - Retrieval Augmented Generation - Part II
+https://github.com/bcs-s5-2026/norag-rag
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 11]
+We give the whole text to Gemini directly, then ask what it knows about Denis Amselemovitch.
+RAG - Retrieval Augmented Generation - Part II
+Predict: Will the model find the paragraph? Will it say so if it does not?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 12]
+1. Go to 
+2. Select the model Gemini 3.6 Flash
+3. Prompt:
+1. Here is a story:
+2. In the same prompt, on a new line, paste the full content of CrimeAndPunishment-shorter.txt
+3. In the same prompt, on a new line, add: Task: What can you tell me about Denis
+Amselemovitch?
+4. Send the prompt and observe the answer.
+RAG - Retrieval Augmented Generation - Part II
+https://gemini.google.com/app
+Then ask yourself: can you explain what is happening, or not happening?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 13]
+Result: the model most likely will fail to answer the question about Denis Amselemovitch.
+Discuss:
+Did the model find the paragraph? Did it say so?
+Is the answer an admission ("I could not find…"), an invention, or a correct answer?
+What would you need to see before you trusted it?
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 14]
+1. Go to 
+2. Upload the same text as a source.
+3. Ask the same question.
+4. Compare:
+1. The result
+2. what does the tool show as its source?
+RAG - Retrieval Augmented Generation - Part II
+https://notebook.google.com/
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 15]
+It is not about the size of the context window: the whole text fits in both cases.
+Gemini: the whole text is in the prompt.
+1. Information density. One paragraph sits among a very long text.
+2. Position. The fact is in the middle of the text. Long-context models are known to use the middle less reliably than the
+start and end (the "lost in the middle" eﬀect).
+NotebookLM: the tool selects passages first.
+It does not hand the whole text to the model. It first finds the passages most relevant to your question, then asks the
+model to answer from those passages.
+The model now reads a few paragraphs instead of a whole book, so the needle is no longer lost in the haystack.
+The tool shows the passages it used, so you can check the answer against its source.
+RAG - Retrieval Augmented Generation - Part II
+The model can read the whole text. The problem is finding and weighting one fact
+among a lot of noise.
+Two ideas follow. Give the model only the relevant evidence, and make every answer
+traceable to its sources. This is what we call grounding.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 16]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 17]
+When an LLM can only use what it learned during training and the text in its prompt, five limits appear:
+Limit Example Consequence
+Static knowledge Knowledge frozen at the training cutoﬀ Outdated answers
+Hallucination Plausible text is not verified text Confident wrong answers
+Private knowledge HR policy, course material, your codebase Not in the model at all
+Needle problem One fact among 500 pages Missed, or mixed up with others
+Token cost Every question resends the whole corpus Cost and latency grow with the corpus
+RAG - Retrieval Augmented Generation - Part II
+Fluency does not imply correctness.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 18]
+Tools extend a model: web search, calculators, code execution, databases, APIs. They remove some of the limits on the
+previous slide, but not all of them:
+Fresh public information: ✔
+Computation: ✔
+Your private corpus: it is not on the web ✘
+Search results: noisy, duplicated, outdated ✘
+"How does password reset work?" returns forty pages that mention passwords ✘
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 19]
+What we need is not "search the web".
+We need:
+Retrieval-Augmented Generation (RAG) = Retrieval + Grounded Generation
+RAG - Retrieval Augmented Generation - Part II
+Search the right knowledge base, by meaning, and use what is found to ground the
+answer.
+RAG changes what the model sees. It does not make the model truthful. Truthfulness
+comes from evidence you can check.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 20]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 21]
+Phase 1, indexing (once, then on change): documents → chunks → embeddings → vector database
+Phase 2, answering (every question): question → embedding → top-k chunks → LLM → grounded answer
+RAG - Retrieval Augmented Generation - Part II
+Rule: the same embedding model must be used in both phases.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 22]
+A RAG system may ingest:
+internal documents: knowledge bases, product manuals, policies
+structured data: databases, spreadsheets
+user-generated content: support tickets, forum posts
+technical documentation: API docs, code, READMEs
+educational material: lectures, papers, course notes
+Unlike web search, this corpus is curated. You decide what the system can know.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 23]
+Documents are split into chunks. A chunk is the unit that gets embedded and retrieved.
+A chunk is typically a few sentences to a few paragraphs.
+Ideally, one chunk holds one idea.
+Overlap keeps context across boundaries.
+Each chunk stores three things: its text, its vector, and its metadata (source, position...).
+RAG - Retrieval Augmented Generation - Part II
+Question: the password-reset procedure is split in half across two chunks. Which half
+will be retrieved?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 24]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 25]
+There is no universally accepted "industry-standard" chunk size for RAG.
+There are common starting points, and one consistent practice: start with chunks of roughly 300–500 tokens, use
+modest overlap, and evaluate retrieval quality on your own data.
+Reminder: Tokens are not words. Rough conversions (they depend on the tokenizer):
+English prose: 1 token ≈ 0.75 words, so 300–500 tokens ≈ 225–375 words.
+Code: more tokens per line; a 300–500 token chunk holds roughly 40–60 lines, depending on the language.
+Quick converter: 
+RAG - Retrieval Augmented Generation - Part II
+Token converter (calctrail)
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 26]
+The figures below are practical engineering ranges, not a claim that every range has been validated as optimal across
+RAG benchmarks.
+Chunk size Typical use case Main trade-oﬀ
+100–200 tokens Short facts, metadata-rich documents, precise retrieval High precision, but may lose context
+200–500 tokens General-purpose RAG, documentation, FAQs Good starting range for experimentation
+500–800 tokens Technical documentation, explanatory prose More context, potentially less precise matches
+800–1,500
+tokens
+Long explanations, complex sections, legal or policy
+passages
+Preserves context but can dilute retrieval
+relevance
+1,500+ tokens Specialized use cases, long passages, parent-document
+retrieval
+Less granular retrieval; more context per result
+Token counts are model-tokenizer dependent.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 27]
+Overlap repeats the end of one chunk at the start of the next, so a sentence cut at a boundary can still be read whole in
+one of the two chunks.
+With the lab settings (800 characters, 10% overlap):
+Each chunk starts 720 characters after the previous one (800 − 80).
+Overlap is usually 10–20%, but it is application and domain dependent.
+Not always necessary. Overlap helps when text has no clean boundaries, such as long prose cut into fixed windows. It
+adds little when the source already splits cleanly (one FAQ entry, one product record, one function per chunk), and it
+stores repeated text and can return near-duplicate results.
+RAG - Retrieval Augmented Generation - Part II
+chunk 0  [==============================]
+chunk 1                             [===============================]
+                                     ^^^ shared: 80 of 800 characters
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 28]
+A vector database stores chunks and finds the nearest ones to a query vector.
+For each chunk it stores:
+the vector (computed by your embedding model)
+the text (what you will send to the LLM)
+the metadata (source file, position, date, access rules etc...)
+It provides two operations:
+add: store a chunk's vector, text and metadata during indexing
+query: given a query vector, return the top-k most similar chunks, optionally filtered by metadata
+Examples:
+ChromaDB: local, runs in your application, used in our lab
+Pinecone: managed cloud service
+RAG - Retrieval Augmented Generation - Part II
+The database stores and searches vectors. It does not understand meaning. The
+embedding model does.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 29]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 30]
+"The LLM predicts the next token" is true, but it hides the fact that everything in between is numbers and vectors.
+RAG - Retrieval Augmented Generation - Part II
+LLMs are trained on tokens, but they operate on vectors.
+"the cat ate the cheese"
+   → tokens             (a word may be one or several tokens)
+   → token ids          (one id per entry of a ~200 000-token vocabulary)
+   → embedding vectors  (a lookup table, learned during training)
+   → transformer layers (arithmetic on vectors)
+   → next-token prediction
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 31]
+: a piece of text (a token, a sentence, a paragraph, a chunk)
+: a dense vector
+: the number of dimensions. 384 for all-MiniLM-L6-v2; 768, 1024, 1536 or 3072 are common elsewhere.
+The key idea: semantically related inputs produce nearby vectors.
+"Here is how user login works on our platform"
+"Explain the user login process"
+The words diﬀer. The vectors should be close.
+RAG - Retrieval Augmented Generation - Part II
+f(x) → v ∈ Rd
+x
+v
+d
+The goal is semantic similarity, not lexical similarity.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 32]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 33]
+COSINE SIMILARITY COMPARES THE DIRECTION OF TWO VECTORS:
+1: same direction
+0: unrelated
+−1: opposite
+IF A AND B ARE NORMALIZED:
+RAG - Retrieval Augmented Generation - Part II
+cos(θ) =  
+∥a∥ ∥b∥
+a ⋅ b
+cos(θ) = a ⋅ b
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 34]
+Three vectors in 4 dimensions:
+ (same direction as , twice as long)
+Pair Dot product Lengths Cosine
+a · b 4 √6 × √6 = 6 4 / 6 ≈ 0.67
+a · a 6 √6 × √6 = 6 6 / 6 = 1.00
+a · c 12 √6 × √24 = 12 12 / 12 = 1.00
+RAG - Retrieval Augmented Generation - Part II
+a = (1, 2, 0, 1)
+b = (2, 1, 1, 0)
+c = 2a = (2, 4, 0, 2) a
+Compare a with itself and a with c. Both pairs point in the same direction, so the
+cosine is 1.00 both times. But the dot product is 6 for a · a and 12 for a · c: it doubled
+because c is twice as long.
+Cosine compares direction. Dot product mixes direction and length. Most retrieval
+setups normalise vectors to length 1, so the two then agree.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 35]
+Learned during training. The model finds vectors that make prediction easier.
+Words used in similar contexts end up with similar vectors. Nobody assigns "cat" a value.
+Dimensions are latent features, not named concepts. One dimension may loosely look like "animate vs inanimate",
+but no dimension is "cat".
+RAG - Retrieval Augmented Generation - Part II
+Geometry emerges from training. It is not designed.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 36]
+Three diﬀerent vector spaces appear in a RAG system.
+Only one of them is yours to manage.
+1. Token embedding table 2. Hidden states inside the LLM 3. Retrieval embeddings
+Where Inside the LLM Inside the LLM, at every layer A separate embedding
+model
+Dimension The model's hidden size: about 4 096 in a
+mid-size model
+The same hidden size as (1), at
+every layer
+384 to 3 072
+Depends on
+context?
+No: one vector per token Yes: changes with the
+surrounding text
+No: one vector per chunk
+or query
+Exposed by hosted
+APIs?
+No Usually no Yes, you call it
+Built for Starting the computation Predicting the next token Comparing meaning for
+retrieval
+Managed by The model provider The model provider Your application
+RAG - Retrieval Augmented Generation - Part II
+The LLM's internal space is not your search index.
+RAG pipelines rely on an external Embedding Model
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 37]
+An embedding model is trained on large sets of text pairs until texts with similar meaning get nearby vectors.
+Even though we call them models, they are a diﬀerent kind of beast from a chat LLM:
+Embedding model: all-MiniLM-L6-v2 Chat LLM (e.g. a 7-billion-parameter open model)
+Parameters 22.7 million about 7 billion (roughly 300× more)
+Output one 384-number vector per text a next-token probability distribution, generated one token at a time
+Size on disk tens of MB several GB
+Hardware runs on a laptop CPU usually a GPU, or a remote API
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 38]
+The model is small enough to run on your machine. The first run downloads it; after that, embedding needs no API
+call, no quota, and no text leaves your machine.
+Hosted embedding APIs are the other option: you pay per call, and your text is sent to a provider.
+Trade-oﬀ: smaller models are cheaper and private; larger models are often more accurate on hard retrieval tasks.
+Measure on your own data (Parts III and IV come back to this).
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 39]
+You choose an embedding model, separately from the chat model.
+You cannot reuse the llm model's internal states as a search index. Those states are the activations the
+transformer computes while it reads a prompt: one vector per token, per layer. They depend on the surrounding
+text, were not trained for retrieval, and hosted APIs do not expose them.
+Queries and chunks must be embedded with the same embedding model.
+Changing the embedding model means re-indexing everything: the spaces are not comparable.
+Keep in mind: A similarity score is not a confidence: 0.83 does not mean "83 % correct".
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 40]
+Basic RAG Pipeline Reminder:
+Phase one: store chunks and their corresponding embedding vectors in the Vector db
+Phase two: For a given task (query), retrieve the relevant chunks.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 41]
+Once every chunk has a vector, retrieval is a search problem.
+Indexing Phase
+For every chunk : compute , and store it with its text and metadata.
+Query time
+Embed the question with the same model: .
+Score every chunk: .
+Keep the top-k: the k chunks with the highest score. In our lab, k = 5.
+The result is the chunks whose meaning is closest to the question.
+RAG - Retrieval Augmented Generation - Part II
+i v  
+i
+v  
+q
+sim(v
+ 
+, v
+ 
+)q i
+This does not equate to a guaranty that the chunks will be the correct ones for the task
+(query)
+Trade-oﬀ for k: too small, and the answer is missed. Too large, and the context fills
+with partially relevant text.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 42]
+The retrieval step gave us evidence to work with.
+Next, we rely on an LLM to turn that evidence and the task or question into an answer.
+The LLM does not search. It reads and uses what we gave it.
+We give it the question and the evidence, with instructions that say how to use the evidence.
+The instructions are yours. The documents are untrusted data (Session 2).
+The final prompt is forcibly larger, potentially much larger, than the question.
+Trade-oﬀ between the number of chunks, accuracy, token costs and latency/
+RAG - Retrieval Augmented Generation - Part II
+Instructions: Answer only from the documents below.
+If the documents do not contain the answer, say so.
+Cite the chunk ids you used.
+<documents>
+[chunk hr-policy.md#014] ...
+[chunk hr-policy.md#015] ...
+</documents>
+Question: How many days of parental leave are granted?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 43]
+A SOFTWARE COMPANY
+2 million lines of code
+500 microservices
+20 000 pages of documentation
+An engineer asks: "How does password reset work?"
+Retrieval may return chunks about the auth service, the API specification, security requirements, an integration test and
+an architecture note.
+40 years of client contracts, and a matter archive of 60 000 documents
+Policies that diﬀer by jurisdiction and are revised every year
+Templates, precedents and internal memos, some of them superseded
+A lawyer asks: "Is a non-compete clause enforceable for an employee in our London oﬀice?"
+Retrieval may return chunks from the UK employment memo, a precedent that has since been superseded, a non-
+compete template written for the German subsidiary, and a partner's note about a diﬀerent case.
+RAG - Retrieval Augmented Generation - Part II
+The answer depends on which jurisdiction and which version of the rule the chunks
+come from. Metadata (jurisdiction, date, status) is how you choose between them.
+The quality of the answer is capped by the quality of the retrieval.AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 44]
+Fork vs Template
+There is a new version - since I asked you to 'Use this template', you cannot simply pull the changes.
+This time, you may go with Fork, then clone - always check your remote upstream.
+Here is how to work with a forked repos. The github paths are generic ones - adapt them to our norag_rag project.
+If you are not comfortable with having a diﬀerent upstream, use the 'Use this template' and create a new project
+(norag_rag_v2)
+RAG - Retrieval Augmented Generation - Part II
+# After you have forked and cloned the repos
+# Make sure you specify the upstream so that it keeps pointing
+# to the class repos
+git remote add upstream https://github.com/epita-bcs/class-project.git
+# Check that it worked
+git remote -v
+# Expected result - Notice the difference between the origin (points to your project) an
+# origin    git@github.com:STUDENT_USERNAME/class-project.git (fetch)
+# origin    git@github.com:STUDENT_USERNAME/class-project.git (push)
+# upstream  https://github.com/epita-bcs/class-project.git (fetch)
+# upstream  https://github.com/epita-bcs/class-project.git (push)
+# When you work on your repos, you commit and push to origin main
+git status
+git add .
+git commit -m "Implement exercise 1"
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 45]
+It includes:
+ask_norag_google.py: simple 'dump the text in the context and ask' approach.
+Already explored during the last class.
+ask_rag_google.py: a naive version of a RAG pipeline which makes the simplest choice at every step.
+We will see that it does job....except when it does not.
+RAG - Retrieval Augmented Generation - Part II
+Try ask_norag_google.py again, using "gemini-3.5-flash-lite": observe the behavior.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 46]
+Open Project: norag_rag
+Quick overview: files, docs, scripts, .env (key), models
+File: ask_rag_google.py in the norag-rag repository.
+Question asked: What does this say about Denis Amselemovitch?
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 47]
+LLM APIVector databaseEmbedding modelYour app
+LLM APIVector databaseEmbedding modelYour app
+Indexing (once, then on change)
+Answering (every question)
+validate, build references, return
+split documents into chunks
+1
+embed each chunk
+2
+vectors
+3
+store vector + text + metadata
+4
+embed the question
+5
+query vector
+6
+top-k nearest chunks
+7
+chunks + scores
+8
+instructions + chunks + question
+9
+answer
+10
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 48]
+Let's go through the ask_rag_google.py script in four stages.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 49]
+Paragraphs shorter than 20 characters are dropped: chapter headings, "He scowled.", ...
+The remaining paragraphs are joined back into one long text. Paragraph breaks no longer decide where chunks end.
+A window of 800 characters slides forward 720 characters at each step. Chunks can start or end in the middle of a
+word or a sentence.
+Every chunk gets an id: id_0, id_1, ...
+RAG - Retrieval Augmented Generation - Part II
+DOCUMENT_FILE = "docs/CrimeAndPunishment.txt"
+CHUNK_SIZE = 800          # characters
+OVERLAP_PERCENT = 10      # 10% of 800 = 80 characters
+MIN_PARAGRAPH_LENGTH = 20
+paragraphs = [p.strip() for p in text.split("\n\n") if len(p.strip()) >= MIN_PARAGRAPH_L
+text = "\n\n".join(paragraphs)
+overlap = CHUNK_SIZE * OVERLAP_PERCENT // 100   # 80
+step = CHUNK_SIZE - overlap                      # 720
+chunks = [text[i:i + CHUNK_SIZE] for i in range(0, len(text), step)]
+Question: the script splits on paragraphs, then throws the paragraph boundaries
+away. Why keep the short-paragraph filter, and what would you lose by dropping it?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 50]
+all-MiniLM-L6-v2 produces 384-dimensional vectors. It has 22.7 million parameters.
+Its input limit is 256 word pieces. Longer text is truncated, so the end is ignored. An 800-character chunk is about 190
+tokens, so it fits.
+Each chunk is embedded locally: no API call, no quota.
+The script adds chunks in batches of 5 000, because Chroma limits how many items one call accepts.
+The vectors and texts are stored in ./chroma_db, so indexing runs once. If the collection already has chunks, the
+script skips indexing; otherwise it asks [y/N] first.
+The same embedding function is attached to the collection, so queries use it too.
+RAG - Retrieval Augmented Generation - Part II
+local_ef = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+collection = chroma_client.get_or_create_collection(name=COLLECTION_NAME, embedding_func
+collection.add(documents=chunks, ids=[f"id_{i}" for i in range(len(chunks))])
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 51]
+The question What does this say about Denis? is embedded with the same model.
+Why is the embedding function not passed to query? The collection was opened with
+embedding_function=local_ef in get_or_create_collection, so collection.query() embeds
+query_texts with that same function. Index and query always use the same model.
+ChromaDB returns the 5 nearest chunks.
+The script prints them, so you can check what the model will see.
+RAG - Retrieval Augmented Generation - Part II
+results = collection.query(query_texts=[query], n_results=n_results)   # n_results = 5
+return "\n---\n".join(results['documents'][0])
+Predict: will the paragraph about Denis be among the top 5? Which other chunks
+might appear?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 52]
+The prompt has three parts: instructions, evidence, question.
+The answer is sent to gemini-3.5-flash-lite through the OpenAI SDK, and streamed.
+RAG - Retrieval Augmented Generation - Part II
+full_prompt = f"""
+You are a literary analyst. Using only the following excerpts from the book,
+answer the question provided. If the information is not in the excerpts, say you don't k
+EXCERPTS:
+{context}
+QUESTION:
+{question}
+"""
+What do you think of the prompt top directive? NotebookLM?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 53]
+Edit .env and add your Google Key.
+Look at three things in the output:
+1. The retrieved context: is the Denis paragraph in it?
+2. The answer: is it grounded in the excerpts?
+3. The second run: did it re-index, or reuse chroma_db/?
+RAG - Retrieval Augmented Generation - Part II
+cd norag-rag
+source .venv/bin/activate
+python ask_rag_google.py
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 54]
+In our demo, RAG found the Denis Amselemovitch paragraph where the full-context prompt (norag) did not.
+That is a real success, but it is one question on one corpus.
+Does this mean there is nothing else to do? No!.
+Engineering Reality Check: A single success shows that the pipeline works end to end. It does not show that it works in
+general: real corpora are messier, and real users ask harder questions.
+At every step we took the simplest choice available. Can you spot them and think of what to question about them?
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 55]
+1. Chunking: fixed 800-character windows. What happens to a sentence cut in half? To a dialogue that spans ten short
+paragraphs?
+2. Embedding model: which one, and what dimension?
+3. Retrieval: one query, one top-5. What if the answer needs two places in the book?
+4. Relevance: the top 5 are always returned, even if none is relevant. How would the model know?
+5. Verification: the prompt says "say you don't know", but we have no test that checks this. How would you test it?
+6. Measurement: across 50 questions, how would you know whether the system is better this week than last week?
+RAG - Retrieval Augmented Generation - Part II
+We are not answering those questions yet. Parts III and IV will address them one at a
+time, each motivated by a failure that can be observed.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 56]
+With the naive architecture and the questions above in mind:
+RAG - Retrieval Augmented Generation - Part II
+Can you think of cases where our naive RAG implementation might break? What does
+break mean?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 57]
+A few situations to start from:
+A support agent pastes an error code straight from a log file.
+A user asks "how do I get back into my account?". The documentation only ever says "credential recovery".
+The documents simply do not contain the answer.
+These are not the only ones. Your corpus will have its own: finding them is part of the project.
+RAG - Retrieval Augmented Generation - Part II
+For each one: what do you expect the pipeline to do? How would you check?
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 58]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 59]
+Teams of 2 or 3 (3 maximum).
+Every member must be able to answer for the whole code base, not only their part.
+A fair split of the work, traceable in your git history.
+Built over the next 3 weeks, in four versions.
+V1 · Naive RAG app
+Oct. 29th
+V2 · Better retrieval
+Nov. 4th
+V3 · Safe, measured
+Nov. 10th
+V4 · Extra features
+Nov. 13th
+Presentations: live 
+demo + Q&A
+Nov. 17th & 18th
+V1: a web app that answers questions from your corpus, with references. Today's spec.
+V2: better retrieval.
+V3: logging, cost, automated evaluation, guardrails.
+V4: extra features of your choice.
+Presentations: live demo, every student presents, Q&A.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 60]
+In software engineering, owning a system means being the person who is accountable for it when it runs, when it
+breaks, and when it has to change.
+Concretely, an owner can:
+Explain follow any request end to end: which file, which function, which data
+Justify every design choice, and the alternative that was rejected
+Predict where it breaks, and what that failure looks like to a user
+Change modify it live, without regenerating everything
+Measure back claims with numbers, not impressions
+RAG - Retrieval Augmented Generation - Part II
+AI coding agents are allowed (Session 1, The elephant in the room). Responsibility is
+not delegated. If an agent wrote it and you cannot explain it, you do not own it.
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 61]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 62]
+A web application where a user asks a question about a document corpus and receives a grounded answer, with
+references to the passages it was built from.
+Your corpus. Choose one you know well enough to tell a correct answer from a plausible one, and large enough that
+retrieval matters.
+Your stack. Frontend, backend, embedding model, vector database, LLM provider: your choice. Every choice goes in
+your decision log.
+Naive on purpose. V1 is the baseline. Improving it is V2. A V1 that already "does everything" leaves you nothing to
+measure against.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 63]
+Pipeline
+The two phases, indexing and answering, as in norag_rag/ask_rag_google.py, behind a web API.
+The LLM response is validated against a schema (Zod, Pydantic) before it reaches the UI, as in the triage app. An
+invalid response is a handled case, not a crash.
+Documents
+.md and .txt files.
+Add and delete documents. Choose which documents a question is asked against.
+UI
+Document management.
+Chunk size, overlap and top-k can be changed without editing code.
+A question box, the answer, and its references. Opening a reference shows the chunk it points to.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 64]
+Controlled failures
+Decide what can go wrong in your pipeline, and what the user sees when it does.
+Every failure you anticipated has a defined behaviour. A silent wrong answer is the failure to design against.
+Evaluation: a retrieval baseline
+A question set on your corpus. For each question: the expected answer, and where it lives in the corpus. Include hard
+questions, and questions the corpus cannot answer.
+A repeatable way to measure how often the right passage is retrieved. You will run it again in V2: the two numbers
+must be comparable.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 65]
+There is no single right answer. Pick, justify, and record it in your decision log.
+What makes a corpus interesting for RAG? What makes a question hard?
+How many questions do you need before you trust the number?
+What does "the right passage was retrieved" mean once chunk size changes?
+Could the LLM answer your questions without retrieval? What would that tell you about your question set?
+What should the user see when nothing relevant is retrieved?
+What goes in the response schema? How do you know a cited reference was actually retrieved?
+What does a reference point to: a file, a chunk, a line? What does a user need to verify an answer?
+When a parameter changes, what has to be recomputed?
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 66]
+Your team github project, with a git tag v1.
+Besides the source code and usual artifacts (README.md), the project should include a REPORT.md that contains:
+Team Details: Who is in the team, and who worked on what.
+Decision log: for each significant choice, the options you considered, the one you picked, and why. Short entries,
+written by you.
+Known failures: what breaks today. For each: a question that shows it, and what you observed. This is your starting
+point for V2.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 67]
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 68]
+We keep the same pipeline and improve it one component at a time.
+Each improvement starts from a failure we observe and measure. For each one, we will look at what it fixes, what it
+costs, and what it still does not solve.
+If time permits, we will extend the app with interesting features.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026
+
+[page 69]
+1. A context window is not a search index. Needles get missed, even when they fit.
+2. RAG = retrieval + grounded generation. It improves grounding. It does not guarantee truth.
+3. Embeddings place meaning in a space. Similarity is an angle, not a confidence.
+4. The LLM's internal space is not yours to manage. Your application manages its own embedding space.
+5. A vector database stores and searches vectors. The embedding model is what carries meaning.
+6. A naive pipeline that works once is a starting point. Finding where it breaks is the first engineering step.
+RAG - Retrieval Augmented Generation - Part II
+AI Systems Integration And Operations - BCS S5 - EPITA - Denis Amselem - 2026

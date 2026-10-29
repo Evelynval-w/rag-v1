@@ -1,0 +1,7 @@
+{
+  "chunk_size": 800,
+  "overlap_percent": 10,
+  "min_paragraph_length": 20,
+  "top_k": 5,
+  "embedding_model": "all-MiniLM-L6-v2"
+}

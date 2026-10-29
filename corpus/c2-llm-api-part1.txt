@@ -1,0 +1,257 @@
+[page 1]
+This session is about systems engineering, not prompt tricks.
+The goal is to turn "an LLM call" into a reliable software component.
+Authentication, contracts, timeouts, errors, observability, cost and validation all matter.
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 2]
+Session 1: Done. An AI model is a component. The engineering problem is the system around it.
+Session 2 (today, Parts I and II): We build a minimal web application that integrates AI.
+By the end of Part II you will have a Support Triage application that:
+allows a user to submit a ticket through a web interface
+talks to a real model through a server-side route
+works with diﬀerent providers by changing configuration, not code
+returns data your application can safely rely on
+fails in a controlled, explainable way
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 3]
+By the end of Part I and Part II, you can:
+explain what travels over the wire between your server and an LLM provider
+call an LLM from a server route with the openai SDK, keeping the API key on the server
+use the same code with the school-hosted models, Gemini and Nvidia, by changing configuration
+design prompts as explicit software inputs, and separate your instructions from untrusted data
+explain the diﬀerence between asking for JSON and validating JSON
+validate model output at runtime (with Zod, or Pydantic in Python) before it reaches application code
+handle provider failures, rate limits, timeouts and malformed outputs — and retry only when it makes sense
+estimate token usage and API cost
+use streaming when interactive latency matters
+keep your application independent from any single provider or SDK
+LLM API Integration - Part I
+Based on your experience, how many of those already sound familiar? What is really
+new?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 4]
+A small internal tool for a software company:
+LLM API Integration - Part I
+A user submits a support ticket. The AI classifies it and produces a concise, structured
+triage result for the support team.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 5]
+Input:
+Output:
+You will also receive a dataset of 500 synthetic tickets (from a fictional company, Kestrel Analytics) to test your work.
+LLM API Integration - Part I
+"After upgrading, every export to CSV fails with a 500.
+The browser console shows a timeout after about 30 seconds."
+{
+  "category": "technical_bug",
+  "priority": "high",
+  "summary": "CSV exports time out after the upgrade",
+  "suggested_action": "Investigate the export job timeout and the upgrade changes"
+}
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 6]
+In this course, the AI feature lives inside a web application. We assume a Next.js based stack:
+TypeScript for the frontend and the backend
+App Router: a route handler ( route.ts) is our backend endpoint
+the AI call is made by the server, never by the browser (section 3 explains why)
+all code samples and the labs use this stack
+LLM API Integration - Part I
+ Browser                         Your Next.js server                    LLM provider
+┌──────────────────┐  POST    ┌─────────────────────────────┐  HTTPS  ┌──────────────┐
+│ app/page.tsx     │ ───────► │ app/api/triage/route.ts     │ ──────► │ (outside     │
+│ form + result    │ ◄─────── │ lib/triage.ts (LLM client)  │ ◄────── │  your server)│
+└──────────────────┘   JSON   └─────────────────────────────┘         └──────────────┘
+   client side                    server side — secrets live here
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 7]
+Next.js is a convenient assumption, not an obligation. Everything in this session is about the boundary between your
+application and an LLM provider, and every backend has one.
+If you choose Python (FastAPI, Flask, Django…) for your own project, the ideas are identical. You just need the
+equivalent tools:
+Concern Next.js / TypeScript Python
+HTTP endpoint route handler route.ts FastAPI / Flask endpoint
+LLM SDK openai (npm) openai (PyPI) — same base_url, api_key, model
+Runtime validation Zod Pydantic
+Config and secrets process.env, .env.local os.environ, .env (python-dotenv, pydantic-settings)
+Schema for the provider z.toJSONSchema(schema) Model.model_json_schema()
+SDK error classes OpenAI.APIError, … openai.APIStatusError, …
+The labs and the checkpoints are written for Next.js. With Python you are on your own for the syntax — not for the
+engineering decisions.
+Server-side key, validation, error handling, timeouts, provider configuration are language-neutral. Python's openai SDK
+has the same defaults (2 retries, 10 minute timeout) and the same overall error hierarchy: APIConnectionError,
+APITimeoutError, APIStatusError (with status_code), RateLimitError.
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 8]
+LLM provider
+(outside your server)
+LLM client
+(your code)
+Route handler
+app/api/triage/route.ts
+Browser
+LLM provider
+(outside your server)
+LLM client
+(your code)
+Route handler
+app/api/triage/route.ts
+Browser
+POST /api/triage { ticket }
+1
+check the request
+2
+triage(ticket)
+3
+build the prompt
+4
+HTTPS request + API key
+5
+model output (text) + token usage
+6
+parse and validate the output
+7
+typed result, or a typed error
+8
+200 + JSON, or 400 / 429 / 502 / 504
+9
+Notice:
+where the call to the LLM provider happens: on the server
+where the API key lives: on the server, nowhere else
+a browser-only app could call the provider directly — but then the key would have to ship to every user's browser (see
+section 3)
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 9]
+# Where Responsibility Can fail with
+1 Route handler Check the incoming request (a string? not too long?) 400
+2 Route handler Ask the LLM client for a triage result —
+3 LLM client Build the prompt: instructions + the ticket (a bug)
+4 LLM client → provider Send the request with the API key, with a timeout timeout, 429, 5xx
+5 Provider Run the model, return text + token usage outside our control
+6 LLM client Parse and validate the model's answer invalid output
+7 LLM client Return a typed result or a typed error —
+8 Route handler Turn that into an HTTP response —
+The model call is one step out of eight.
+Steps 1, 6 and 8 are ordinary code that you can test with ordinary tests.
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 10]
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 11]
+What is familiar
+HTTPS calls to an external service
+API keys and configuration
+rate limits, timeouts, error codes
+usage-based billing
+You have integrated services like this before (a payment provider, an email service).
+What is new
+the answer is generated, not looked up
+the same request can produce diﬀerent outputs
+an output can be well-formed and wrong
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 12]
+Conventional dependency
+You normally test: f(x) === y
+LLM dependency
+The right question becomes:
+Key idea:
+LLM API Integration - Part I
+input → deterministic function → output
+input + instructions + context + model → probabilistic output
+Does the output satisfy our contract and meet our quality requirements?
+The exact text is not a stable API contract unless we impose one.
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 13]
+Failure Example Engineering response
+Transport timeout, DNS problem, 5xx retry (carefully) or fail gracefully
+Provider 429 rate limit, quota, invalid request classify the error, back oﬀ, or fall back
+Contract malformed or unexpected output schema validation
+Quality plausible but wrong classification evaluation, prompt and model changes
+("quota" and "rate limit" are often the same error from your side: a 429.)
+A successful HTTP 200 tells you the provider answered. It does not tell you the answer is usable.
+A perfectly valid JSON response can still be wrong. Sessions 4 and 5 deal with it.
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 14]
+A model writes its answer one token at a time. At each step it computes a probability for every possible next token, then
+one token is picked.
+Temperature reshapes these probabilities. Higher = more adventurous choices; lower = more predictable choices.
+At temperature 0, the most probable token is always picked ("greedy" choice).
+Every following token depends on the tokens before it, so one diﬀerent early choice changes everything after it.
+Top-k and top-p also narrow the choice: top-k only picks among the K most probable tokens; top-p only picks among
+the smallest set of tokens whose probabilities add up to p.
+LLM API Integration - Part I
+Ticket: "I was billed twice this month."
+Next token after "category:"
+  billing         ████████████████████  62 %
+  account         ████████              25 %
+  technical_bug   ████                  12 %
+  other           ▏                      1 %
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 15]
+But if temperature is 0, there is no randomness in the picking. So why do answers still diﬀer?
+Because the probabilities themselves can change slightly from one call to the next:
+The provider's servers are shared. Many requests are processed together in batches, and the batch that contains your
+request depends on whoever else is calling at that moment.
+Depending on the batch, the GPU splits and orders its arithmetic diﬀerently. And in floating-point arithmetic, the
+order of operations changes the result:
+Try it yourself: 
+The diﬀerences are tiny — normally invisible. But when two tokens are almost tied (say 50.1 % vs 49.9 %), a tiny
+diﬀerence can flip the winner, and the rest of the answer follows a diﬀerent path.
+Temperature 0 makes variation rarer. It does not make it impossible.
+LLM API Integration - Part I
+console.log((0.1 + 0.2) + 0.3)   // 0.6000000000000001
+console.log(0.1 + (0.2 + 0.3))   // 0.6
+https://onecompiler.com/javascript
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 16]
+In real deployments there are more moving parts:
+Model aliases move. A name like ...-latest can point to a new version next month.
+Gateways and routers: requests routed to diﬀerent hardware replicas behind a load balancer.
+Fallbacks. If you configure a second (or third) model for when the first one is unavailable, your results now come from
+models with diﬀerent styles, strengths and failure modes. The type and quality of results can fluctuate a lot: a fallback
+keeps the feature available, not necessarily equally good.
+LLM API Integration - Part I
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 17]
+Your system needs a plan.
+Two honest options:
+1. Accept the variation, when it does not matter for the product.
+2. Add checks (validation, quality checks) and retry or reject when the output is not good enough.
+LLM API Integration - Part I
+Which parts of Support Triage can tolerate variation? Which cannot?
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
+
+[page 18]
+A bad conclusion:
+A better decomposition:
+Uncertainty moves testing away from exact equality, towards constraints, evaluation datasets and heuristics.
+It is still engineering — with a diﬀerent strategy.
+LLM API Integration - Part I
+"The model is unpredictable, so we cannot test it."
+Transport contract      →  testable - integration test with mocked provider
+Schema contract         →  testable - unit test on the validator
+Business rules          →  testable - unit tests on plain functions
+Model quality           →  **measurable** (not perfectly repeatable)
+AI Systems Integration And Operations - BCS S5 - EPITA - 2026
