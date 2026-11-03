@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { rag } from "@/lib/rag-client";
-import { answerFromChunks, LlmInvalidOutputError } from "@/lib/llm";
+import { answerFromChunks, answerWithoutContext, LlmInvalidOutputError } from "@/lib/llm";
 
 const BodySchema = z.object({
+  corpus: z.string().min(1).max(64),
   question: z.string().min(1).max(1000),
   doc_names: z.array(z.string()).optional(),
   top_k: z.number().int().min(1).max(20).optional(),
+  no_context: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -17,9 +19,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
+  // No-context mode: ask the LLM directly, no retrieval. Used by the eval
+  // runner to flag questions the model already knew without retrieval.
+  if (body.no_context) {
+    try {
+      const out = await answerWithoutContext(body.question);
+      return NextResponse.json({
+        answer: out.answer,
+        chunks: [],
+        model: out.model,
+        usage: out.usage,
+        no_context: true,
+      });
+    } catch (e) {
+      if (e instanceof LlmInvalidOutputError) {
+        return NextResponse.json({ error: "invalid_model_output" }, { status: 502 });
+      }
+      return NextResponse.json(
+        { error: "llm_unavailable", detail: (e as Error).message },
+        { status: 502 },
+      );
+    }
+  }
+
   let chunks;
   try {
     const result = await rag.query({
+      corpus: body.corpus,
       question: body.question,
       doc_names: body.doc_names,
       top_k: body.top_k,

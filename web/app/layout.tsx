@@ -3,8 +3,9 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata = {
-  title: "RAG V1",
-  description: "Naive RAG web app over the EPITA BCS S5 course notes",
+  title: "RAG V2",
+  description:
+    "RAG web app over two corpora (Kestrel KB + EPITA course notes), with retrieval evaluation and words analytics",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -14,6 +15,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <nav className="topnav">
           <Link href="/">Ask</Link>
           <Link href="/docs">Documents</Link>
+          <Link href="/words">Words</Link>
+          <Link href="/eval">Evaluation</Link>
           <Link href="/settings">Settings</Link>
         </nav>
         <main className="container">{children}</main>

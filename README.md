@@ -1,25 +1,29 @@
-# rag-v1
+# rag-v2
 
-V1 of the RAG assignment for the EPITA BCS S5 AI Systems Integration and
-Operations course. A small web app that answers questions from a corpus,
-with references.
+RAG web app for the EPITA BCS S5 AI Systems Integration and Operations
+course. V2 adds a second corpus, a repeatable retrieval evaluation, a
+Words tab that explores the corpus vocabulary, and the no-context test
+that flags questions the model already knew.
 
-I kept this version naive on purpose. V2 is where I plan to improve the
-retrieval.
+V1 of this project is at git tag `v1`; the deliverables for V2 live at
+git tag `v2`.
 
 ## Structure
 
-- `web/` is the Next.js 16 app (ask page, documents page, settings page,
-  API routes).
-- `python-rag/` is a FastAPI sidecar that owns the index. It uses Chroma
-  for storage and `all-MiniLM-L6-v2` for the embeddings, same stack as the
-  class `norag-rag` reference.
-- `python-rag/storage/docs/` holds the `.md` and `.txt` files. On start-up
-  this is already filled with the 8 EPITA course notes I converted from
-  the PDFs.
-- `python-rag/eval/` is the retrieval evaluation (questions + runner).
-- `REPORT.md` has the decision log, known failures and the baseline
-  numbers.
+- `web/` is the Next.js 16 app (ask, documents, words, evaluation,
+  settings pages and the API routes).
+- `python-rag/` is a FastAPI sidecar that owns the index. Chroma for
+  storage, `all-MiniLM-L6-v2` as the default embedding model.
+- `python-rag/storage/corpora/<name>/docs/` holds the `.md` and `.txt`
+  files of each corpus. V2 ships two:
+  - `kestrel/` — the Kestrel Analytics knowledge base from the course
+    (billing policies, product guide, error runbook, service catalog).
+  - `epita/` — the 8 EPITA course notes I converted from the PDFs.
+- `python-rag/eval/questions/{kestrel,epita}.jsonl` are the two question
+  sets (Kestrel starter set and my own 10, in the Kestrel JSONL schema).
+- `python-rag/eval/run.py` is the retrieval + answer runner.
+- `python-rag/eval/results/` is where each run writes its results file.
+- `REPORT.md` has the decision log, known failures, and the V2 numbers.
 
 ## Run
 
@@ -47,27 +51,24 @@ npm run dev
 Open http://localhost:3044. The first ask may be slow because Chroma
 downloads the embedding model.
 
-To build the index, go to the Documents page and click Rebuild index.
+Before you ask a question for the first time, go to the Documents page,
+pick each corpus from the switcher, and click **Rebuild index**. V2
+indexes every corpus into its own Chroma collection so you have to do
+this once per corpus.
 
 ## Pages
 
-- `/` ask a question, see the answer and references.
-- `/docs` list documents, add or delete, rebuild the index.
+- `/` ask a question, see the answer and references. The corpus is
+  chosen at the top; the choice is remembered in localStorage.
+- `/docs` list, add, delete, and reindex documents for the chosen
+  corpus.
+- `/words` the Words tab. Corpus mode (vocabulary and word → chunks)
+  and Question mode (type a question and see which of its words exist
+  in the corpus and in which chunks).
+- `/eval` evaluation UI. Pick a corpus, optional config label, and the
+  no-context / with-answers flags, then **Run eval**.
 - `/settings` change chunk size, overlap, min paragraph length, top-k
   and embedding model.
-
-## Settings I started with
-
-| setting | value | why |
-|---|---|---|
-| chunk_size | 800 chars | ~190 tokens, fits the embedding model's 256 limit |
-| overlap_percent | 10 | 80 chars overlap so sentences do not get cut |
-| min_paragraph_length | 20 | drops headings and one-line fragments |
-| top_k | 5 | enough to cover a two-hop question |
-| embedding_model | `all-MiniLM-L6-v2` | matches the class reference |
-
-These are also the defaults the sidecar writes back to `settings.json`
-if the file is missing.
 
 ## Env vars
 
@@ -90,10 +91,43 @@ npm run build
 
 ## Evaluation
 
+The evaluation runs each question of a question set against the current
+sidecar configuration and writes a results file under
+`python-rag/eval/results/`. It can be started two ways.
+
+From the terminal:
+
 ```sh
 cd python-rag
 source .venv/bin/activate
+# both corpora at the current settings
 python eval/run.py
+# one corpus, with a label that will show up in the filename
+python eval/run.py --corpus kestrel --config-label minilm_800_k5
+# add the no-context test (ask every question without retrieval)
+python eval/run.py --no-context
+# also generate the answers so you can hand-grade them
+python eval/run.py --with-answers --corpus kestrel
 ```
 
-Numbers for this run are in `REPORT.md` under Evaluation baseline.
+From the front-end: open `/eval`, pick a corpus, a (optional) label,
+tick the flags you want, click **Run eval**.
+
+What the runner measures:
+
+- for every answerable question, retrieve top-10 chunks once, then
+  score hit@1, @3, @5, @10. A hit at k is at least one chunk in the top
+  k whose doc_name is one of the question's `evidence` sources and
+  whose text contains the evidence quote (case-insensitive).
+- unanswerable questions are excluded from the retrieval numbers; they
+  are asked through the full `/api/ask` and we check `no_answer == true`.
+- with `--no-context`, each question is also asked to the LLM without
+  retrieval; the result file flags which ones the model already knew.
+- with `--with-answers`, each answerable question is also sent to the
+  full RAG and the answer + the retrieved chunks are stored next to the
+  question for hand grading (`grade` field, left `null` for you to fill).
+
+## Hidden `/about` page
+
+Per the V2 spec, `/about` holds a sentence that must not be linked from
+anywhere else. It is reachable only by typing the URL.
